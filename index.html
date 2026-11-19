@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>医療費控除どっちが得</title>
+<meta name="description" content="医療費控除とセルフメディケーション税制、どちらが得かを控除額と戻る税金の目安で比べる計算ツール（令和8年分・2027年の確定申告）。入れた数字は外に送りません。">
+<style>
+:root {
+  --bg: #f7f6f2; --card: #ffffff; --ink: #1f2328; --sub: #5d646d; --line: #e3e1da; --accent: #2557c7;
+  --ok: #1a7f4b; --ok-bg: #e6f4ec; --warn: #9a6200; --warn-bg: #fdf1dc; --bad: #b42318; --bad-bg: #fde8e6;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #15171a; --card: #1e2125; --ink: #e8e6e1; --sub: #a0a6ad; --line: #33373c; --accent: #7ea6ff; --ok: #5cc98d; --ok-bg: #173325; --warn: #f0b44c; --warn-bg: #3a2c12; --bad: #ff7b6e; --bad-bg: #3d1a17; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.7 "Segoe UI", "Yu Gothic UI", "Hiragino Sans", "Meiryo", sans-serif; }
+main { max-width: 780px; margin: 0 auto; padding: 28px 16px 64px; }
+h1 { font-size: 27px; margin: 0 0 4px; }
+h2 { font-size: 17px; margin: 0 0 8px; }
+h3 { font-size: 16px; margin: 0 0 4px; }
+.lead { color: var(--sub); margin: 0 0 16px; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 16px; }
+.panel > * { min-width: 0; }
+.row { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin: 10px 0; font-size: 15px; }
+.row label { display: inline-flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+input[type=text], select { font: inherit; font-size: 17px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); max-width: 100%; }
+input.num { width: 9em; text-align: right; }
+input:focus-visible, select:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 50%, transparent); outline-offset: 2px; }
+.small { color: var(--sub); font-size: 13px; }
+.cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cards > * { min-width: 0; }
+@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+.card { border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; }
+.card.best { border: 2px solid var(--ok); }
+.card .big { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tag { display: inline-block; border-radius: 999px; padding: 0 10px; font-size: 13px; font-weight: 700; background: var(--ok-bg); color: var(--ok); }
+.note { border-radius: 10px; padding: 8px 12px; font-size: 15px; margin: 8px 0; }
+.note.ok { background: var(--ok-bg); color: var(--ok); }
+.note.warn { background: var(--warn-bg); color: var(--warn); }
+.note.bad { background: var(--bad-bg); color: var(--bad); }
+ul li { margin: 3px 0; }
+footer { margin-top: 28px; color: var(--sub); font-size: 13px; }
+#selftest { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>医療費控除、どっちが得？</h1>
+  <p class="lead">確定申告の「医療費控除」には、<b>通常の医療費控除</b>と、ドラッグストアの薬で使える<b>セルフメディケーション税制</b>があり、<b>どちらか一方しか選べません</b>。両方の控除額と、戻る税金の目安を並べて出します（令和8年分。2027年2〜3月の確定申告）。ネットにはつながず、入れた数字は外に送りません。</p>
+
+  <section class="panel">
+    <h2>1. あなたの所得</h2>
+    <div class="row"><label><select id="incKind"><option value="gross">給与の年収（会社員）</option><option value="income">総所得金額等（分かる人）</option></select> <input type="text" class="num" id="inc" inputmode="numeric" value="400"> 万円</label></div>
+    <div class="row"><label>所得税の税率 <select id="rate"><option value="auto">年収から目安で決める</option><option value="0">0%</option><option value="0.05">5%</option><option value="0.10">10%</option><option value="0.20">20%</option><option value="0.23">23%</option><option value="0.33">33%</option></select></label></div>
+    <p class="small">年収から決める税率は、社会保険料などの控除をおよそ差し引いた目安です。源泉徴収票の「給与所得控除後の金額」から「所得控除の額の合計額」を引いた額（課税所得）が分かれば、その額で国税庁の表（195万円未満 5%・330万円未満 10%・695万円未満 20%…）から選んでください。</p>
+  </section>
+
+  <section class="panel">
+    <h2>2. 今年（2026年1〜12月）に払ったもの</h2>
+    <div class="row"><label>病院・歯医者・処方薬などの医療費（家族の分も） <input type="text" class="num" id="medical" inputmode="numeric" value="60000"> 円</label></div>
+    <div class="row"><label>そのうち保険などで戻ってきた額（高額療養費・入院給付金など） <input type="text" class="num" id="covered" inputmode="numeric" placeholder="なければ空"> 円</label></div>
+    <div class="row"><label>ドラッグストアの<b>セルフメディケーション対象</b>の薬 <input type="text" class="num" id="otc" inputmode="numeric" value="40000"> 円</label></div>
+    <p class="small">対象の薬は、レシートに「★」などの印や「セルフメディケーション税制対象」と書いてあります。パッケージに共通の識別マークがあるものもあります。</p>
+    <div class="row"><label><input type="checkbox" id="otcInNormal" checked> 上の薬は、病気やけがを治すために買った（通常の医療費控除にも入れられる）</label></div>
+    <div class="row"><label><input type="checkbox" id="checkup" checked> 今年、<b>申告するあなた自身が</b>、会社や市区町村の<b>健康診断・人間ドック・がん検診・予防接種（インフルエンザなど）</b>を受けた</label></div>
+  </section>
+
+  <section class="panel">
+    <h2>3. 結果</h2>
+    <div id="out"></div>
+  </section>
+
+  <section class="panel">
+    <h2>気をつけること</h2>
+    <ul>
+      <li><b>選んだあとで変えられません。</b>確定申告のあとに、更正の請求や修正申告で入れ替えることはできません（国税庁 No.1131）。</li>
+      <li>セルフメディケーション税制は、<b>申告する本人</b>が健康診断などを受けている必要があります（家族は受けていなくても大丈夫）。</li>
+      <li>家族の医療費は、生計を一にしていれば1人にまとめて申告できます。</li>
+      <li>保険などで戻ってきた額は、本来はその給付の対象になった医療費からだけ引きます（ほかの医療費からは引きません）。ここでは合計から引いています。</li>
+      <li>戻る額は目安です（所得税は控除額×税率×1.021、住民税は控除額×10%）。会社員でも、医療費控除を受けるには確定申告が要ります。</li>
+    </ul>
+  </section>
+
+  <footer>出典: 国税庁 タックスアンサー No.1120（医療費控除）・No.1129（セルフメディケーション税制）・No.1131（選択適用）・No.1132（対象の医薬品。令和8年12月31日までの購入）・No.2260（所得税の税率）。令和9年分からはセルフメディケーション税制の対象の薬が広がり、期限も延びます（財務省「令和8年度税制改正の大綱」）。</footer>
+  <pre id="selftest"></pre>
+</main>
+<script>
+// 医療費控除とセルフメディケーション税制、どちらが得か（令和8年分）。
+// 出典: 国税庁 No.1120（通常の医療費控除: (支払った医療費 − 保険などで補てんされる額) − 10万円（総所得金額等が200万円未満なら その5%）、最高200万円）、
+//       No.1129（セルフメディケーション税制: 特定一般用医薬品等購入費 − 12,000円、最高88,000円。健康診断などの「一定の取組」が要件）、
+//       No.1131（どちらか一方の選択。選んだ後で変更できない）、No.1132（令和8年12月31日までの購入が対象）、No.2260（所得税の税率）。
+(function (root) {
+  "use strict";
+
+  function floorOf(totalIncome) {
+    // 10万円と、総所得金額等の5%の、低いほう
+    return Math.min(100000, Math.floor(Math.max(0, totalIncome) * 0.05));
+  }
+
+  // 通常の医療費控除。otcInNormal: 対象の薬（治療のための購入）を通常の控除にも入れるか
+  function normal(p) {
+    var paid = (p.medical || 0) + (p.otcInNormal ? p.otc || 0 : 0);
+    var net = Math.max(0, paid - (p.covered || 0));
+    var fl = floorOf(p.totalIncome);
+    return { amount: Math.min(2000000, Math.max(0, net - fl)), floor: fl, net: net };
+  }
+
+  function self(p) {
+    if (!p.checkup) return { amount: 0, eligible: false };
+    var net = Math.max(0, (p.otc || 0) - (p.otcCovered || 0));
+    return { amount: Math.min(88000, Math.max(0, net - 12000)), eligible: true, net: net };
+  }
+
+  // 国税庁 No.2260
+  var BR = [[1950000, 0.05], [3300000, 0.10], [6950000, 0.20], [9000000, 0.23], [18000000, 0.33], [40000000, 0.40], [Infinity, 0.45]];
+  function rateOf(taxable) { if (!(taxable >= 1000)) return 0; for (var i = 0; i < BR.length; i++) if (taxable < BR[i][0]) return BR[i][1]; return 0.45; }
+
+  // 戻る（減る）税金の目安: 所得税（復興特別所得税込み ×1.021）＋住民税 10%
+  function saving(deduction, rate) {
+    return { incomeTax: Math.floor(deduction * rate * 1.021), resident: Math.floor(deduction * 0.1) };
+  }
+
+  function compare(p) {
+    var n = normal(p), s = self(p);
+    var sn = saving(n.amount, p.rate), ss = saving(s.amount, p.rate);
+    var tn = sn.incomeTax + sn.resident, ts = ss.incomeTax + ss.resident;
+    var better = n.amount === 0 && s.amount === 0 ? "none" : !s.eligible ? "normal" : n.amount >= s.amount ? (n.amount === s.amount ? "same" : "normal") : "self";
+    return { normal: n, self: s, savingNormal: sn, savingSelf: ss, totalNormal: tn, totalSelf: ts, better: better };
+  }
+
+  var api = { floorOf: floorOf, normal: normal, self: self, rateOf: rateOf, saving: saving, compare: compare };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  else root.Iryohi = api;
+})(this);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var I = window.Iryohi;
+  var $ = function (id) { return document.getElementById(id); };
+  var yen = function (n) { return Math.floor(n).toLocaleString("ja-JP") + "円"; };
+  // 11-05 点検: 「円」を先に消していたので、所得の欄の「5000円」が5000万円になった。円・万は付いていればその単位で読む。
+  // 単位や「,」だけの入力・13桁以上は読めない（null）。何も入れていない欄だけ 0
+  // 11-05 試用: 「1万5000」「4万5千円」もふだんの書き方なので読む（円として返す）
+  var parse = function (s) {
+    s = String(s == null ? "" : s).normalize("NFKC").replace(/[,\s]/g, "");
+    var k = s.match(/^(\d{1,8})万(\d{1,4})(千)?円?$/);
+    if (k) { var low = parseInt(k[2], 10) * (k[3] ? 1000 : 1); return low < 10000 ? { v: parseInt(k[1], 10) * 10000 + low, u: "円" } : null; }
+    var m = s.match(/^(\d{1,12}(?:\.\d+)?)(万円?|円)?$/); return m ? { v: parseFloat(m[1]), u: m[2] ? m[2].charAt(0) : "" } : null;
+  };
+  var blank = function (s) { return String(s == null ? "" : s).normalize("NFKC").trim() === ""; };
+  // 円の欄: 「60000」「6万」「60,000円」
+  var en = function (s) { if (blank(s)) return 0; var p = parse(s); return p ? Math.round(p.v * (p.u === "万" ? 10000 : 1)) : null; };
+  // 万円の欄: 「400」「400万」は万円、「5000円」は円、単位なしで1万以上は円
+  var man = function (s) { var p = parse(s); if (!p) return null; return p.u === "円" || (!p.u && p.v >= 10000) ? Math.floor(p.v) : Math.round(p.v * 10000); };
+
+  // 令和8年分の基礎控除（国税庁 No.1199「令和8年4月1日現在法令等」。合計所得金額で決まる）
+  function kisoR8(total) {
+    return total <= 4890000 ? 1040000 : total <= 6550000 ? 670000 : total <= 23500000 ? 620000
+      : total <= 24000000 ? 480000 : total <= 24500000 ? 320000 : total <= 25000000 ? 160000 : 0;
+  }
+  // 令和8年分の給与所得（国税庁 No.1410。660万円未満は本来、表で求める）
+  function salaryIncome(g) {
+    var d = g <= 2200000 ? Math.min(g, 740000) : g <= 3600000 ? g * 0.3 + 80000 : g <= 6600000 ? g * 0.2 + 440000 : g <= 8500000 ? g * 0.1 + 1100000 : 1950000;
+    return Math.max(0, Math.floor(g - d));
+  }
+
+  function run() {
+    var v = man($("inc").value), out = $("out");
+    var vals = ["medical", "covered", "otc"].map(function (id) { return en($(id).value); });
+    var names = ["所得", "医療費", "保険などで戻ってきた額", "対象の薬"];
+    var badOnes = [v].concat(vals).map(function (x, i) { return x == null ? names[i] : null; }).filter(Boolean);
+    if (badOnes.length) { out.innerHTML = '<div class="note bad">' + badOnes.join("・") + " が読めません。数字で入れてください（例: 60000、6万、1万5000）。" + (badOnes[0] === "所得" && blank($("inc").value) ? "所得は空にできません。" : "") + "</div>"; return null; }
+    var total = $("incKind").value === "gross" ? salaryIncome(v) : v;
+    var rate;
+    if ($("rate").value === "auto") {
+      // 目安: 給与所得から 基礎控除（令和8年分、国税庁 No.1199 の表）と社会保険料（年収の15%）を引いた課税所得で税率を決める
+      var gross = $("incKind").value === "gross" ? v : null;
+      var taxable = total - kisoR8(total) - (gross ? gross * 0.15 : 0);
+      rate = I.rateOf(taxable);
+    } else rate = parseFloat($("rate").value);
+    var r = I.compare({ totalIncome: total, rate: rate, medical: vals[0], covered: vals[1], otc: vals[2], otcInNormal: $("otcInNormal").checked, checkup: $("checkup").checked });
+
+    function card(title, d, s, t, best, extra) {
+      return '<div class="card' + (best ? " best" : "") + '"><h3>' + title + (best ? ' <span class="tag">得なほう</span>' : "") + '</h3><div class="small">控除額</div><div class="big">' + yen(d) + '</div><div class="small">戻る税金の目安: <b>' + yen(t) + "</b>（所得税 " + yen(s.incomeTax) + "＋住民税 " + yen(s.resident) + "）</div>" + (extra || "") + "</div>";
+    }
+    var h = '<div class="small" id="readas">' + ($("incKind").value === "gross" ? "年収 " : "総所得金額等 ") + yen(v) + "・医療費 " + yen(vals[0]) + "・戻った額 " + yen(vals[1]) + "・対象の薬 " + yen(vals[2]) + " として読みました。</div>";
+    h += '<p class="small">総所得金額等 ' + yen(total) + "・所得税率 " + Math.round(rate * 100) + "% で計算。通常の医療費控除の足切りは " + yen(r.normal.floor) + "（10万円か、所得の5%の低いほう）。</p>";
+    h += '<div class="cards">' +
+      card("通常の医療費控除", r.normal.amount, r.savingNormal, r.totalNormal, r.better === "normal", '<p class="small">払った医療費 ' + yen(r.normal.net) + " − " + yen(r.normal.floor) + "</p>") +
+      card("セルフメディケーション税制", r.self.amount, r.savingSelf, r.totalSelf, r.better === "self", r.self.eligible ? '<p class="small">対象の薬 ' + yen(r.self.net) + " − 12,000円（最高 88,000円）</p>" : '<div class="note bad">健康診断などを受けていないので、選べません。</div>') +
+      "</div>";
+    if (r.better === "none") h += '<div class="note warn">どちらも控除はありません（通常は医療費が ' + yen(r.normal.floor) + " を超えたら、セルフは対象の薬が 12,000円を超えたら）。</div>";
+    else if (r.better === "same") h += '<div class="note ok">どちらも同じ額です。</div>';
+    else h += '<div class="note ok"><b>' + (r.better === "normal" ? "通常の医療費控除" : "セルフメディケーション税制") + "</b>のほうが、控除が " + yen(Math.abs(r.normal.amount - r.self.amount)) + " 大きくなります。選んだら後から変えられないので、申告の前にもう一度確かめてください。</div>";
+    out.innerHTML = h;
+    return r;
+  }
+  ["inc", "medical", "covered", "otc"].forEach(function (id) { $(id).oninput = run; });
+  ["incKind", "rate", "otcInNormal", "checkup"].forEach(function (id) { $(id).onchange = run; });
+  run();
+
+  if (location.hash === "#selftest") {
+    var log = [], fail = 0;
+    var check = function (ok, msg) { if (!ok) fail++; log.push((ok ? "PASS " : "FAIL ") + msg); };
+    var r = run();
+    check(r.better === "self" && r.self.amount === 28000 && r.normal.amount === 0, "default: self 28,000 vs normal 0");
+    $("medical").value = "30万"; r = run();
+    check(r.better === "normal" && r.normal.amount === 240000, "300,000+40,000-100,000 = 240,000 normal");
+    $("checkup").checked = false; $("medical").value = "60000"; r = run();
+    check(r.better === "none" || r.better === "normal", "no checkup: self not eligible");
+    check($("out").textContent.indexOf("選べません") >= 0, "shows not eligible");
+    $("checkup").checked = true; $("incKind").value = "income"; $("inc").value = "150"; $("medical").value = "90000"; $("otc").value = "0"; r = run();
+    check(r.normal.floor === 75000 && r.normal.amount === 15000, "income 150万 -> floor 75,000");
+    $("medical").value = "あ"; check(run() === null, "unreadable");
+    $("medical").value = "円"; check(run() === null, "unit only is unreadable");
+    $("medical").value = "，，円"; check(run() === null, "commas+unit only is unreadable");
+    $("medical").value = new Array(401).join("9"); check(run() === null, "400 digits is unreadable");
+    $("medical").value = "1万5000"; r = run(); check(r && r.normal.net === 15000, "1万5000 -> 15,000");
+    $("medical").value = "４万５千円"; r = run(); check(r && r.normal.net === 45000, "4万5千円 -> 45,000");
+    $("medical").value = "1万20000"; check(run() === null, "1万20000 is unreadable");
+    $("covered").value = "-200000"; run(); check($("out").textContent.indexOf("保険などで戻ってきた額 が読めません") >= 0, "names the unreadable field");
+    $("covered").value = "";
+    $("medical").value = "６０，０００円"; r = run(); check(r && r.normal.net === 60000, "zenkaku 60,000円");
+    $("inc").value = "5000円"; $("medical").value = "60000"; $("otc").value = "0"; r = run();
+    check(r && r.normal.floor === 250 && r.normal.amount === 59750, "income 5000円 -> floor 250");
+    $("inc").value = "0.5万"; r = run(); check(r && r.normal.floor === 250, "income 0.5万 -> floor 250");
+    $("inc").value = "200万円"; $("medical").value = "100001"; r = run(); check(r && r.normal.floor === 100000 && r.normal.amount === 1, "income 200万円 floor 100,000, 100,001 -> 1");
+    $("inc").value = "150"; r = run(); check($("readas").textContent.indexOf("総所得金額等 1,500,000円") >= 0, "readas shows income");
+    $("incKind").value = "gross"; $("inc").value = "400"; $("medical").value = "60000"; $("otc").value = "40000"; run();
+    var sw = document.documentElement.scrollWidth, iw = window.innerWidth;
+    check(sw <= iw, "width " + sw + "<=" + iw);
+    $("selftest").textContent = (fail ? "SELFTEST FAIL " + fail : "SELFTEST PASS " + log.length) + "\n" + log.join("\n");
+  }
+})();
+</script>
+</body>
+</html>
